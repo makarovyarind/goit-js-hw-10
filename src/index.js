@@ -1,9 +1,10 @@
-import debounce from 'lodash.debounce';
-import Notiflix from 'notiflix';
-import { Notify } from "notiflix";
+//import { debounce } from 'lodash.debounce';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import { fetchCountries } from './fetchCountries';
 
 import './css/styles.css';
+
+const debounce = require('lodash.debounce');
 
 const DEBOUNCE_DELAY = 300;
 
@@ -23,13 +24,13 @@ function onSearchInput(e) {
         .then(response => {
             refs.list.innerHTML = '';
             refs.info.innerHTML = '';
-            
+            console.log(response.length);
             if (response.length === 1) {
-                refs.info.insertAdjacentElement('beforeend', countryInfoRender(response));
+                countryInfoRender(response);
             } else if (response.length > 10) {
-                Notiflix.Notify.info('Too many matches found. Please enter a more specific name.')
+                Notify.info('Too many matches found. Please enter a more specific name.')
             } else {
-                refs.list.insertAdjacentElement('beforeend', countryListRender(response));
+                countryListRender(response);
             }
         })
         .catch(error => Notify.failure("Oops, there is no country with that name"));
@@ -38,30 +39,31 @@ function onSearchInput(e) {
 function countryInfoRender(name) {
     const infoMarkup = name
         .map(({ name, capital, population, flags, languages }) => {
-return `<img 
-    src="${flags.svg}" 
-    alt="${name.official}" width = "25" height = "15" />
-    <h1>${name.official}</h1>
-    <p>Capital: ${capital}</p>
-    <p>Population: ${population}</p>
-    <p>Languages: ${languages.map(el => el.name).join(', ')}</p>`;
+            return `<ul class="country-info__list">
+            <li class="country-info__item">
+            <img class="country-list__flag" src="${flags.svg}" alt="Flag of ${name.official}" width = 30px height = 30px>
+            <h2>${name.official}</h2></li>
+            <li class="country-info__item"><p><b>Capital: </b>${capital}</p></li>
+            <li class="country-info__item"><p><b>Population: </b>${population}</p></li>
+            <li class="country-info__item"><p><b>Languages: </b>${Object.values(languages).join(', ')}</p></li>
+        </ul>`;
 }).join('');
     
-    return infoMarkup;
+    refs.info.innerHTML = infoMarkup;
+    refs.list.innerHTML = '';
 }
 
 function countryListRender(name) {
     const searchMarkup = name
         .map(({ name, flags }) => {
-        return `<li>
-    <img src="${flags.svg}" 
-    alt="${name.official}" 
-    width = "25" 
-    height = "15" />
-  <p>${name.official}</p>
-</li>`;
+            return `
+        <li class="country-list__item">
+              <img class="country-list__flag" src="${flags.svg}" alt="Flag of ${name.common}" width = 25px height = 15px>
+              <p class="country-list__name">${name.common}</p>
+          </li>`;
     }).join('');
 
-    return searchMarkup;
+    refs.list.innerHTML = searchMarkup;
+    refs.info.innerHTML = '';
 }
 
